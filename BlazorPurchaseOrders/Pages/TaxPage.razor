@@ -1,0 +1,115 @@
+﻿@page "/tax"
+@using BlazorPurchaseOrders.Data
+@inject ITaxService TaxService
+@using Syncfusion.Blazor.Navigations
+
+
+<h3>Tax Rates</h3>
+<br />
+
+<SfGrid DataSource="@tax"
+        Toolbar="@Toolbaritems">
+    <GridColumns>
+        <GridColumn Field="@nameof(Tax.TaxDescription)"
+                    HeaderText="Description"
+                    TextAlign="TextAlign.Left"
+                    Width="60">
+            <GridColumn Field="@nameof(Tax.TaxRate)"
+                        HeaderText="Rate %"
+                        TextAlign="TextAlign.Right"
+                        Format="p2"
+                        Width="40">
+            </GridColumn>
+        </GridColumn>
+    </GridColumns>
+    <GridEvents OnToolbarClick="ToolbarClickHandler" TValue="Tax"></GridEvents>
+</SfGrid>
+
+<SfDialog @ref="DialogAddEditTax" IsModal="true" Width="500px" ShowCloseIcon="true" Visible="false">
+    <DialogTemplates>
+        <Header> @HeaderText </Header>
+    </DialogTemplates>
+    <EditForm Model="@addeditTax" OnValidSubmit="@TaxSave">
+        <div>
+            <SfTextBox Enabled="true" Placeholder="Description"
+                       FloatLabelType="@FloatLabelType.Always"
+                       @bind-Value="addeditTax.TaxDescription"></SfTextBox>
+            <SfNumericTextBox Enabled="true" Placeholder="Tax Rate" Width="50"
+                              Format="p2"
+                              FloatLabelType="@FloatLabelType.Always"
+                              @bind-Value="addeditTax.TaxRate"></SfNumericTextBox>
+        </div>
+        <br /><br />
+        <div class="e-footer-content">
+            <div class="button-container">
+                <button type="button" class="e-btn e-normal" @onclick="@CloseDialog">Cancel</button>
+                <button type="submit" class="e-btn e-normal e-primary">Save</button>
+            </div>
+        </div>
+    </EditForm>
+</SfDialog>
+
+@code {
+
+    IEnumerable<Tax> tax;
+    private List<ItemModel> Toolbaritems = new List<ItemModel>();
+
+    SfDialog DialogAddEditTax;
+    Tax addeditTax = new Tax();
+    string HeaderText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        //Populate the list of VAT objects from the VAT table.
+        tax = await TaxService.TaxList();
+
+        Toolbaritems.Add(new ItemModel() { Text = "Add", TooltipText = "Add a new Tax Rate", PrefixIcon = "e-add" });
+        Toolbaritems.Add(new ItemModel() { Text = "Edit", TooltipText = "Edit selected Tax Rate", PrefixIcon = "e-edit" });
+        Toolbaritems.Add(new ItemModel() { Text = "Delete", TooltipText = "Delete selected Tax Rate", PrefixIcon = "e-delete" });
+    }
+
+    public async Task ToolbarClickHandler(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item.Text == "Add")
+        {
+            //Code for adding goes here
+            addeditTax = new Tax();             // Ensures a blank form when adding
+            HeaderText = "Add Tax Rate";
+            await this.DialogAddEditTax.Show();
+        }
+        if (args.Item.Text == "Edit")
+        {
+            //Code for editing goes here
+        }
+        if (args.Item.Text == "Delete")
+        {
+            //code for deleting goes here
+        }
+    }
+
+    protected async Task TaxSave()
+    {
+        if (addeditTax.TaxID == 0)
+        {
+            // Insert if TaxID is zero.
+
+        }
+        else
+        {
+            // Item is being edited
+        }
+
+        //Close Dialog
+        await CloseDialog();
+        //Reset addeditTax
+        addeditTax = new Tax();
+        //Refresh datagrid
+        tax = await TaxService.TaxList();
+        StateHasChanged();
+    }
+
+    private async Task CloseDialog()
+    {
+        await this.DialogAddEditTax.Hide();
+    }
+}
